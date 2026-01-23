@@ -81,8 +81,6 @@ spawn-at-startup "mako"
 spawn-at-startup "sh" "-c" "~/.config/waybar/launch.sh"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "sh" "-c" "~/.config/hypr/hypridle-launch.sh"
-spawn-at-startup "flatpak" "run" "dev.deedles.Trayscale"
-spawn-at-startup "flatpak" "run" "com.bitwarden.desktop"
 spawn-at-startup "nm-applet"
 
 // Keybindings

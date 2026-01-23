@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Hyprland (Tilefin)
 Comment=Hyprland with Tilefin environment setup
-Exec=/usr/local/bin/hyprland-tilefin-session
+Exec=/usr/bin/hyprland-tilefin-session
 Type=Application
 DesktopNames=Hyprland

@@ -344,7 +344,7 @@ cp /ctx/hyprland.conf /etc/hypr/hyprland.conf
 cp /ctx/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
 
 # Session wrapper (sets SSH_AUTH_SOCK before starting Hyprland)
-install -Dm755 /ctx/hyprland-session.sh /usr/local/bin/hyprland-tilefin-session
+install -Dm755 /ctx/hyprland-session.sh /usr/bin/hyprland-tilefin-session
 cp /ctx/hyprland-tilefin.desktop /usr/share/wayland-sessions/hyprland-tilefin.desktop
 
 ###############################################################################
@@ -358,7 +358,7 @@ mkdir -p /etc/skel/.config/niri
 cp /ctx/niri-config.kdl /etc/skel/.config/niri/config.kdl
 
 # Session wrapper (sets SSH_AUTH_SOCK before starting niri)
-install -Dm755 /ctx/niri-session.sh /usr/local/bin/niri-tilefin-session
+install -Dm755 /ctx/niri-session.sh /usr/bin/niri-tilefin-session
 cp /ctx/niri-tilefin.desktop /usr/share/wayland-sessions/niri-tilefin.desktop
 
 ###############################################################################

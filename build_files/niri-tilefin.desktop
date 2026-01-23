@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Niri (Tilefin)
 Comment=Niri with Tilefin environment setup
-Exec=/usr/local/bin/niri-tilefin-session
+Exec=/usr/bin/niri-tilefin-session
 Type=Application
 DesktopNames=niri
