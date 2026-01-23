@@ -3,6 +3,8 @@
 vt = 1
 
 [default_session]
-# Use tuigreet as the greeter with Hyprland as default session
-command = "tuigreet --time --remember --remember-session --asterisks --cmd Hyprland"
+# Use tuigreet as the greeter with session selector
+# --sessions: show available sessions from wayland-sessions directory
+# --remember-session: remember last selected session
+command = "tuigreet --time --remember --remember-session --asterisks --sessions /usr/share/wayland-sessions"
 user = "greeter"

@@ -1,0 +1,216 @@
+// Niri system-wide configuration
+// User configs in ~/.config/niri/config.kdl will override these settings
+// Documentation: https://github.com/YaLTeR/niri/wiki/Configuration:-Overview
+
+// Input configuration
+input {
+    keyboard {
+        xkb {
+            layout "us"
+            options "caps:ctrl_modifier"
+        }
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+        accel-speed 0.2
+    }
+
+    mouse {
+        natural-scroll
+    }
+}
+
+// Output/monitor configuration - HiDPI scaling
+output "eDP-1" {
+    scale 1.25
+}
+
+// Default scale for other monitors
+output "*" {
+    scale 1.25
+}
+
+// Layout configuration
+layout {
+    gaps 10
+
+    center-focused-column "never"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#33ccff"
+        inactive-color "#595959"
+    }
+
+    border {
+        off
+    }
+}
+
+// Visual preferences
+prefer-no-csd
+
+// Screenshot path
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// Environment variables for Nvidia
+environment {
+    LIBVA_DRIVER_NAME "nvidia"
+    XDG_SESSION_TYPE "wayland"
+    GBM_BACKEND "nvidia-drm"
+    __GLX_VENDOR_LIBRARY_NAME "nvidia"
+    WLR_NO_HARDWARE_CURSORS "1"
+    XCURSOR_SIZE "24"
+    ELECTRON_OZONE_PLATFORM_HINT "wayland"
+    SSH_AUTH_SOCK "$HOME/.var/app/com.bitwarden.desktop/data/.bitwarden-ssh-agent.sock"
+}
+
+// Autostart applications
+spawn-at-startup "sh" "-c" "systemctl --user set-environment SSH_AUTH_SOCK=$HOME/.var/app/com.bitwarden.desktop/data/.bitwarden-ssh-agent.sock"
+spawn-at-startup "sh" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri"
+spawn-at-startup "lxpolkit"
+spawn-at-startup "mako"
+spawn-at-startup "waybar"
+spawn-at-startup "swww-daemon"
+spawn-at-startup "swayidle" "-w" "timeout" "300" "loginctl lock-session" "timeout" "600" "niri msg action power-off-monitors" "resume" "niri msg action power-on-monitors" "before-sleep" "loginctl lock-session" "lock" "swaylock -f"
+spawn-at-startup "flatpak" "run" "dev.deedles.Trayscale"
+spawn-at-startup "flatpak" "run" "com.bitwarden.desktop"
+
+// Keybindings
+// Mod = Super on TTY, Alt in nested window
+binds {
+    // Application launchers
+    Mod+Return { spawn "ptyxis"; }
+    Mod+D { spawn "fuzzel"; }
+    Mod+Escape { spawn "fuzzel"; }
+    Mod+E { spawn "thunar"; }
+    Mod+Semicolon { spawn "rofimoji" "--selector" "fuzzel" "--clipboarder" "wl-copy"; }  // Emoji picker
+    Mod+L { spawn "loginctl" "lock-session"; }  // Lock screen (systemd-integrated)
+
+    // Window management
+    Mod+Q { close-window; }
+    Mod+V { toggle-window-floating; }
+
+    // Focus movement
+    Mod+Left { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+
+    // Window movement
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+
+    // Column width adjustment
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+
+    // Consume/expel windows (like master layout swapping)
+    Mod+BracketLeft { consume-window-into-column; }
+    Mod+BracketRight { expel-window-from-column; }
+
+    // Workspace navigation
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+
+    // Move window to workspace
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+
+    // Workspace scrolling
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up { focus-workspace-up; }
+    Mod+Shift+Page_Down { move-column-to-workspace-down; }
+    Mod+Shift+Page_Up { move-column-to-workspace-up; }
+
+    // Scrolling through columns (niri's unique feature)
+    Mod+Home { focus-column-first; }
+    Mod+End { focus-column-last; }
+
+    // Screenshots
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+    Mod+Shift+S { screenshot; }
+
+    // Power controls
+    Mod+Shift+L { spawn "systemctl" "suspend"; }
+
+    // Volume controls
+    XF86AudioRaiseVolume { spawn "pamixer" "-i" "5"; }
+    XF86AudioLowerVolume { spawn "pamixer" "-d" "5"; }
+    XF86AudioMute { spawn "pamixer" "-t"; }
+
+    // Brightness controls
+    XF86MonBrightnessUp { spawn "brightnessctl" "set" "+5%"; }
+    XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-"; }
+
+    // Niri-specific features
+    Mod+O { toggle-overview; }
+
+    // Column presets
+    Mod+R { switch-preset-column-width; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+C { center-column; }
+
+    // Mouse bindings
+    Mod+WheelScrollDown { focus-workspace-down; }
+    Mod+WheelScrollUp { focus-workspace-up; }
+
+    // Exit niri
+    Mod+Shift+E { quit; }
+}
+
+// Window rules
+window-rule {
+    match app-id="Bitwarden"
+    open-floating true
+    default-column-width { fixed 1200; }
+}
+
+window-rule {
+    match app-id="dev.deedles.Trayscale"
+    open-floating true
+    default-column-width { fixed 500; }
+}
+
+// Cursor settings
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+}
