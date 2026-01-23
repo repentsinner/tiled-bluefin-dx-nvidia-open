@@ -72,12 +72,10 @@ environment {
     WLR_NO_HARDWARE_CURSORS "1"
     XCURSOR_SIZE "24"
     ELECTRON_OZONE_PLATFORM_HINT "wayland"
-    SSH_AUTH_SOCK "$HOME/.var/app/com.bitwarden.desktop/data/.bitwarden-ssh-agent.sock"
 }
 
 // Autostart applications
-spawn-at-startup "sh" "-c" "systemctl --user set-environment SSH_AUTH_SOCK=$HOME/.var/app/com.bitwarden.desktop/data/.bitwarden-ssh-agent.sock"
-spawn-at-startup "sh" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri SSH_ASKPASS"
+spawn-at-startup "sh" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri"
 spawn-at-startup "lxpolkit"
 spawn-at-startup "mako"
 spawn-at-startup "sh" "-c" "~/.config/waybar/launch.sh"
@@ -193,6 +191,13 @@ binds {
 }
 
 // Window rules
+
+// Dim unfocused windows
+window-rule {
+    match is-active=false
+    opacity 0.85
+}
+
 // Disable maximize-on-open behaviors globally (niri 25.11 workaround)
 // See: https://github.com/YaLTeR/niri/issues/2957
 window-rule {

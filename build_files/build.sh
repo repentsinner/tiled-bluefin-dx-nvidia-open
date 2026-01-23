@@ -343,6 +343,10 @@ mkdir -p /etc/hypr
 cp /ctx/hyprland.conf /etc/hypr/hyprland.conf
 cp /ctx/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
 
+# Session wrapper (sets SSH_AUTH_SOCK before starting Hyprland)
+install -Dm755 /ctx/hyprland-session.sh /usr/local/bin/hyprland-tilefin-session
+cp /ctx/hyprland-tilefin.desktop /usr/share/wayland-sessions/hyprland-tilefin.desktop
+
 ###############################################################################
 # Configure Niri
 ###############################################################################
@@ -352,6 +356,10 @@ cp /ctx/niri-config.kdl /etc/niri/config.kdl
 
 mkdir -p /etc/skel/.config/niri
 cp /ctx/niri-config.kdl /etc/skel/.config/niri/config.kdl
+
+# Session wrapper (sets SSH_AUTH_SOCK before starting niri)
+install -Dm755 /ctx/niri-session.sh /usr/local/bin/niri-tilefin-session
+cp /ctx/niri-tilefin.desktop /usr/share/wayland-sessions/niri-tilefin.desktop
 
 ###############################################################################
 # Configure GTK Theming
