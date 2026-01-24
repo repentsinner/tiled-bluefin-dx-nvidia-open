@@ -4,6 +4,8 @@
 
 // Input configuration
 input {
+    focus-follows-mouse
+
     keyboard {
         xkb {
             layout "us"
@@ -34,7 +36,7 @@ output "*" {
 
 // Layout configuration
 layout {
-    gaps 10
+    gaps 0
 
     center-focused-column "never"
 

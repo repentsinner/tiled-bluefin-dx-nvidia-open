@@ -26,6 +26,7 @@ GNOME_REMOVE=(
     gnome-shell-extension-gsconnect
     gnome-shell-extension-common
     gnome-shell-extension-window-list
+    nautilus
     nautilus-gsconnect
     gnome-session-wayland-session
     gnome-classic-session
