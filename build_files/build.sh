@@ -128,6 +128,23 @@ ADDITIONAL_APPS=(
 )
 
 #------------------------------------------------------------------------------
+# Virtualization (Windows VM + Looking Glass support)
+#------------------------------------------------------------------------------
+
+VIRTUALIZATION=(
+    libvirt
+    libvirt-daemon-kvm
+    qemu-kvm
+    virt-manager
+    virt-install
+    edk2-ovmf                 # UEFI firmware for VMs
+    swtpm                     # TPM emulation (Windows 11 requirement)
+    swtpm-tools
+    looking-glass-client      # Low-latency framebuffer for GPU passthrough
+    virtiofsd                 # Fast file sharing with VMs
+)
+
+#------------------------------------------------------------------------------
 # Repositories
 #------------------------------------------------------------------------------
 
@@ -151,6 +168,7 @@ FLATPAKS=(
 
 systemctl enable podman.socket
 systemctl enable tailscaled.service
+systemctl enable libvirtd.socket          # VM management (socket-activated)
 
 ###############################################################################
 # Remove GNOME Components
@@ -204,6 +222,8 @@ ALL_PACKAGES=(
     "${FONTS[@]}"
     # Additional
     "${ADDITIONAL_APPS[@]}"
+    # Virtualization
+    "${VIRTUALIZATION[@]}"
 )
 
 echo "Installing ${#ALL_PACKAGES[@]} packages..."
@@ -399,6 +419,38 @@ gtk-theme-name="adw-gtk3-dark"
 gtk-icon-theme-name="Adwaita"
 gtk-cursor-theme-name="Adwaita"
 gtk-font-name="Cantarell 11"
+EOF
+
+###############################################################################
+# Configure Virtualization
+###############################################################################
+
+# Allow wheel group to manage VMs without additional group membership
+mkdir -p /etc/polkit-1/rules.d
+cat > /etc/polkit-1/rules.d/50-libvirt.rules <<'EOF'
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.libvirt.unix.manage" &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+
+# Enable IOMMU for GPU passthrough (harmless on single-GPU systems)
+# This sets kernel args that will be applied on next boot after image switch
+mkdir -p /usr/lib/bootc/kargs.d
+cat > /usr/lib/bootc/kargs.d/10-iommu.toml <<'EOF'
+# Enable IOMMU for VFIO GPU passthrough
+# These are safe on systems without passthrough - just enables the capability
+kargs = ["intel_iommu=on", "amd_iommu=on", "iommu=pt"]
+EOF
+
+# Enable verbose boot (show kernel and systemd messages instead of splash)
+cat > /usr/lib/bootc/kargs.d/20-verbose-boot.toml <<'EOF'
+# Show boot messages instead of silent splash screen
+# Removes quiet/rhgb to display kernel output and systemd service status
+kargs = ["systemd.show_status=1"]
+delete-kargs = ["quiet", "rhgb"]
 EOF
 
 echo "Build complete!"
