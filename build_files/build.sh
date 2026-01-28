@@ -140,7 +140,7 @@ VIRTUALIZATION=(
     edk2-ovmf                 # UEFI firmware for VMs
     swtpm                     # TPM emulation (Windows 11 requirement)
     swtpm-tools
-    looking-glass-client      # Low-latency framebuffer for GPU passthrough
+    looking-glass-client      # Low-latency framebuffer for GPU passthrough (from COPR)
     virtiofsd                 # Fast file sharing with VMs
 )
 
@@ -151,6 +151,7 @@ VIRTUALIZATION=(
 COPR_REPOS=(
     solopasha/hyprland
     leloubil/wl-clip-persist
+    pgaskin/looking-glass-client
 )
 
 RPM_REPOS=(
