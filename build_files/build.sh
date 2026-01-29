@@ -272,18 +272,16 @@ rm -rf /tmp/bws.zip /tmp/bws
 
 ###############################################################################
 # Configure Display Manager (greetd)
+# Note: greetd package provides /usr/lib/sysusers.d/greetd.conf (creates greetd user)
+# but its tmpfiles.d only sets ownership, doesn't create /var/lib/greetd
 ###############################################################################
 
 mkdir -p /etc/greetd
 cp /ctx/greetd-config.toml /etc/greetd/config.toml
 
-# Create greeter system user using sysusers.d (works with OSTree)
-mkdir -p /usr/lib/sysusers.d
-cp /ctx/greeter.conf /usr/lib/sysusers.d/greeter.conf
-
-# Create cache directory for tuigreet using tmpfiles.d (works with OSTree)
+# Create greetd home directory (package tmpfiles.d doesn't do this)
 mkdir -p /usr/lib/tmpfiles.d
-cp /ctx/greeter-cache.conf /usr/lib/tmpfiles.d/greeter-cache.conf
+cp /ctx/greeter-cache.conf /usr/lib/tmpfiles.d/greetd-home.conf
 
 # Create Wayland session directory if needed
 mkdir -p /usr/share/wayland-sessions
