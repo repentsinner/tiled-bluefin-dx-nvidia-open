@@ -150,8 +150,11 @@ VIRTUALIZATION=(
 #------------------------------------------------------------------------------
 
 COPR_REPOS=(
+    solopasha/hyprland              # hyprlock, hypridle, swww, cliphist (used with Niri too)
     leloubil/wl-clip-persist
     pgaskin/looking-glass-client
+    atim/starship
+    terjeros/eza
 )
 
 RPM_REPOS=(
