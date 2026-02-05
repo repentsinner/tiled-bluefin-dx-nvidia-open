@@ -3,8 +3,8 @@
 set -ouex pipefail
 
 ###############################################################################
-# Tiled Bluefin-DX Build Script
-# Based on patterns from github.com/ashebanow/hyprblue
+# Tilefin-DX Build Script
+# Niri compositor on Bluefin-DX
 ###############################################################################
 
 # Customize OS name for GRUB boot menu
@@ -17,7 +17,7 @@ fi
 # Package Arrays
 ###############################################################################
 
-# GNOME components to remove (replaced by tiling compositors)
+# GNOME components to remove (replaced by Niri)
 GNOME_REMOVE=(
     gnome-shell
     mutter
@@ -37,16 +37,16 @@ GNOME_REMOVE=(
     gnome-shell-extension-launch-new-instance
 )
 
-#------------------------------------------------------------------------------
-# Compositors
-#------------------------------------------------------------------------------
-
-COMPOSITOR_HYPRLAND=(
-    hyprland
-    xdg-desktop-portal-hyprland
+# Homebrew to remove (not needed - using native packages and flatpaks)
+HOMEBREW_REMOVE=(
+    ublue-brew
 )
 
-COMPOSITOR_NIRI=(
+#------------------------------------------------------------------------------
+# Compositor
+#------------------------------------------------------------------------------
+
+COMPOSITOR=(
     niri
 )
 
@@ -107,6 +107,8 @@ SYSTEM_UTILS=(
     greetd
     greetd-tuigreet
     nvidia-container-toolkit
+    chezmoi                   # Dotfiles manager
+    gh                        # GitHub CLI
 )
 
 SYSTEM_THEMING=(
@@ -149,7 +151,6 @@ VIRTUALIZATION=(
 #------------------------------------------------------------------------------
 
 COPR_REPOS=(
-    solopasha/hyprland
     leloubil/wl-clip-persist
     pgaskin/looking-glass-client
 )
@@ -177,6 +178,13 @@ systemctl enable libvirtd.socket          # VM management (socket-activated)
 
 echo "Removing GNOME components..."
 rpm-ostree override remove "${GNOME_REMOVE[@]}"
+
+###############################################################################
+# Remove Homebrew
+###############################################################################
+
+echo "Removing Homebrew..."
+rpm-ostree override remove "${HOMEBREW_REMOVE[@]}"
 
 ###############################################################################
 # Configure Repositories
@@ -207,9 +215,8 @@ done
 ###############################################################################
 
 ALL_PACKAGES=(
-    # Compositors
-    "${COMPOSITOR_HYPRLAND[@]}"
-    "${COMPOSITOR_NIRI[@]}"
+    # Compositor
+    "${COMPOSITOR[@]}"
     # Wayland environment
     "${WAYLAND_CORE[@]}"
     "${WAYLAND_CLIPBOARD[@]}"
@@ -286,17 +293,6 @@ cp /ctx/greeter-cache.conf /usr/lib/tmpfiles.d/greetd-home.conf
 # Create Wayland session directory if needed
 mkdir -p /usr/share/wayland-sessions
 
-# Ensure hyprland.desktop exists for session selection
-if [ ! -f /usr/share/wayland-sessions/hyprland.desktop ]; then
-    cat > /usr/share/wayland-sessions/hyprland.desktop <<EOF
-[Desktop Entry]
-Name=Hyprland
-Comment=An intelligent dynamic tiling Wayland compositor
-Exec=Hyprland
-Type=Application
-EOF
-fi
-
 systemctl enable greetd.service
 
 ###############################################################################
@@ -325,25 +321,18 @@ filesystems=/run/tailscale:rw;
 EOF
 
 ###############################################################################
-# Configure Shared Components
-# (Used by both Hyprland and Niri)
+# Configure Wayland Components
 ###############################################################################
 
 # hyprlock + hypridle (lock screen and idle management)
 mkdir -p /etc/skel/.config/hypr
 cp /ctx/hyprlock.conf /etc/skel/.config/hypr/hyprlock.conf
-cp /ctx/hypridle.conf /etc/skel/.config/hypr/hypridle.conf
-cp /ctx/hypridle-niri.conf /etc/skel/.config/hypr/hypridle-niri.conf
-cp /ctx/hypridle-launch.sh /etc/skel/.config/hypr/hypridle-launch.sh
-chmod +x /etc/skel/.config/hypr/hypridle-launch.sh
+cp /ctx/hypridle-niri.conf /etc/skel/.config/hypr/hypridle.conf
 
 # waybar (status bar)
 mkdir -p /etc/skel/.config/waybar/scripts
-cp /ctx/waybar-config-niri.json /etc/skel/.config/waybar/config-niri
-cp /ctx/waybar-config.json /etc/skel/.config/waybar/config-hyprland
+cp /ctx/waybar-config-niri.json /etc/skel/.config/waybar/config
 cp /ctx/waybar-style.css /etc/skel/.config/waybar/style.css
-cp /ctx/waybar-launch.sh /etc/skel/.config/waybar/launch.sh
-chmod +x /etc/skel/.config/waybar/launch.sh
 cp /ctx/update-check.sh /etc/skel/.config/waybar/scripts/update-check.sh
 chmod +x /etc/skel/.config/waybar/scripts/update-check.sh
 cp /ctx/notification-indicator.sh /etc/skel/.config/waybar/scripts/notification-indicator.sh
@@ -357,24 +346,12 @@ cp /ctx/mako.conf /etc/skel/.config/mako/config
 mkdir -p /etc/skel/.config/nwg-bar
 cp /ctx/nwg-bar.json /etc/skel/.config/nwg-bar/bar.json
 
-# compositor-exit (logout script for both Hyprland and Niri)
+# compositor-exit (logout script)
 install -Dm755 /ctx/compositor-exit.sh /usr/bin/compositor-exit
 
 # XDG desktop portal (use GTK backend instead of GNOME)
 mkdir -p /etc/skel/.config/xdg-desktop-portal
 cp /ctx/portals.conf /etc/skel/.config/xdg-desktop-portal/portals.conf
-
-###############################################################################
-# Configure Hyprland
-###############################################################################
-
-mkdir -p /etc/xdg/hypr
-cp /ctx/hyprland.conf /etc/xdg/hypr/hyprland.conf
-cp /ctx/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
-
-# Session wrapper (sets SSH_AUTH_SOCK before starting Hyprland)
-install -Dm755 /ctx/hyprland-session.sh /usr/bin/hyprland-tilefin-session
-cp /ctx/hyprland-tilefin.desktop /usr/share/wayland-sessions/hyprland-tilefin.desktop
 
 ###############################################################################
 # Configure Niri
@@ -389,6 +366,9 @@ cp /ctx/niri-config.kdl /etc/skel/.config/niri/config.kdl
 # Session wrapper (sets SSH_AUTH_SOCK before starting niri)
 install -Dm755 /ctx/niri-session.sh /usr/bin/niri-tilefin-session
 cp /ctx/niri-tilefin.desktop /usr/share/wayland-sessions/niri-tilefin.desktop
+
+# Remove stock niri session file (we use our Tilefin version)
+rm -f /usr/share/wayland-sessions/niri.desktop
 
 ###############################################################################
 # Configure GTK Theming
@@ -454,5 +434,12 @@ cat > /usr/lib/bootc/kargs.d/20-verbose-boot.toml <<'EOF'
 # Show systemd service status during boot
 kargs = ["systemd.show_status=1"]
 EOF
+
+###############################################################################
+# Install Custom Justfile (ujust recipes)
+###############################################################################
+
+echo "Installing custom ujust recipes..."
+cp /ctx/tilefin.just /usr/share/ublue-os/just/60-tilefin.just
 
 echo "Build complete!"

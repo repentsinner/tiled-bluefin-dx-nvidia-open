@@ -38,6 +38,14 @@ output "*" {
 layout {
     gaps 0
 
+    // Outer margins for focus ring visibility at screen edges
+    struts {
+        left 2
+        right 2
+        top 2
+        bottom 2
+    }
+
     center-focused-column "never"
 
     preset-column-widths {
@@ -80,9 +88,9 @@ environment {
 spawn-at-startup "sh" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri"
 spawn-at-startup "lxpolkit"
 spawn-at-startup "mako"
-spawn-at-startup "sh" "-c" "~/.config/waybar/launch.sh"
+spawn-at-startup "waybar"
 spawn-at-startup "swww-daemon"
-spawn-at-startup "sh" "-c" "~/.config/hypr/hypridle-launch.sh"
+spawn-at-startup "hypridle"
 spawn-at-startup "nm-applet"
 
 // Keybindings

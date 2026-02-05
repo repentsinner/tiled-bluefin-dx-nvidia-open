@@ -3,6 +3,6 @@
 vt = 1
 
 [default_session]
-# Use tuigreet as the greeter with session selector
-command = "tuigreet --time --asterisks --sessions /usr/share/wayland-sessions --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot'"
+# Use tuigreet as the greeter, launching Niri directly
+command = "tuigreet --time --asterisks --cmd /usr/bin/niri-tilefin-session --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot'"
 user = "greetd"
