@@ -104,6 +104,7 @@ SYSTEM_UTILS=(
     greetd-tuigreet
     nvidia-container-toolkit
     chezmoi                   # Dotfiles manager
+    direnv                    # Per-directory environment variables
     gh                        # GitHub CLI
     zoxide                    # Smarter cd
     starship                  # Modern shell prompt
@@ -171,6 +172,7 @@ FLATPAKS=(
 systemctl enable podman.socket
 systemctl enable tailscaled.service
 systemctl enable libvirtd.socket          # VM management (socket-activated)
+systemctl enable rpm-ostreed-automatic.timer  # Auto-stage image upgrades
 
 ###############################################################################
 # Remove GNOME Components
