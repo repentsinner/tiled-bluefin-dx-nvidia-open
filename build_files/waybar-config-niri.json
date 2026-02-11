@@ -62,7 +62,7 @@
     },
 
     "custom/notification": {
-        "exec": "~/.config/waybar/scripts/notification-indicator.sh",
+        "exec": "/usr/share/tilefin/scripts/notification-indicator.sh",
         "return-type": "json",
         "interval": 5,
         "tooltip": true,
@@ -77,7 +77,7 @@
     },
 
     "custom/update-check": {
-        "exec": "~/.config/waybar/scripts/update-check.sh",
+        "exec": "/usr/share/tilefin/scripts/update-check.sh",
         "return-type": "json",
         "interval": 3600,
         "tooltip": true,

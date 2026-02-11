@@ -278,6 +278,10 @@ fi
 # Install Additional Tools
 ###############################################################################
 
+# VS Code: update to latest from Microsoft repo (base image may lag behind)
+echo "Updating VS Code..."
+dnf5 update -y code
+
 # niri-desaturate (fork with desaturate window rule support)
 # Replaces the COPR niri package until upstream merges the PR
 # https://github.com/repentsinner/niri-desaturate
@@ -326,9 +330,9 @@ systemctl enable greetd.service
 mkdir -p /etc/environment.d
 cp /ctx/electron-wayland.conf /etc/environment.d/electron-wayland.conf
 
-# Flatpak apps: use Wayland for proper fractional scaling
-mkdir -p /etc/skel/.local/share/flatpak/overrides
-cat > /etc/skel/.local/share/flatpak/overrides/global <<EOF
+# Flatpak overrides: system-wide (apply to all users automatically)
+mkdir -p /var/lib/flatpak/overrides
+cat > /var/lib/flatpak/overrides/global <<EOF
 [Context]
 sockets=wayland;
 
@@ -337,8 +341,7 @@ ELECTRON_ENABLE_WAYLAND=1
 ELECTRON_OZONE_PLATFORM_HINT=wayland
 EOF
 
-# Trayscale: access tailscale socket
-cat > /etc/skel/.local/share/flatpak/overrides/dev.deedles.Trayscale <<EOF
+cat > /var/lib/flatpak/overrides/dev.deedles.Trayscale <<EOF
 [Context]
 filesystems=/run/tailscale:rw;
 EOF
@@ -355,24 +358,25 @@ cp /ctx/cli-aliases.sh /etc/profile.d/cli-aliases.sh
 ###############################################################################
 
 # hyprlock + hypridle (lock screen and idle management)
-mkdir -p /etc/skel/.config/hypr
-cp /ctx/hyprlock.conf /etc/skel/.config/hypr/hyprlock.conf
-cp /ctx/hypridle-niri.conf /etc/skel/.config/hypr/hypridle.conf
+# System-wide via /etc/hypr/ fallback (users can override in ~/.config/hypr/)
+mkdir -p /etc/hypr
+cp /ctx/hyprlock.conf /etc/hypr/hyprlock.conf
+cp /ctx/hypridle-niri.conf /etc/hypr/hypridle.conf
 
 # waybar (status bar)
-mkdir -p /etc/skel/.config/waybar/scripts
-cp /ctx/waybar-config-niri.json /etc/skel/.config/waybar/config
-cp /ctx/waybar-style.css /etc/skel/.config/waybar/style.css
-cp /ctx/update-check.sh /etc/skel/.config/waybar/scripts/update-check.sh
-chmod +x /etc/skel/.config/waybar/scripts/update-check.sh
-cp /ctx/notification-indicator.sh /etc/skel/.config/waybar/scripts/notification-indicator.sh
-chmod +x /etc/skel/.config/waybar/scripts/notification-indicator.sh
+# System-wide config via XDG fallback (/etc/xdg/waybar/)
+# Users can override by creating ~/.config/waybar/config
+mkdir -p /etc/xdg/waybar
+cp /ctx/waybar-config-niri.json /etc/xdg/waybar/config
+cp /ctx/waybar-style.css /etc/xdg/waybar/style.css
+install -Dm755 /ctx/update-check.sh /usr/share/tilefin/scripts/update-check.sh
+install -Dm755 /ctx/notification-indicator.sh /usr/share/tilefin/scripts/notification-indicator.sh
 
-# mako (notifications)
+# mako (notifications) — no system path support, must use skel
 mkdir -p /etc/skel/.config/mako
 cp /ctx/mako.conf /etc/skel/.config/mako/config
 
-# nwg-bar (power menu)
+# nwg-bar (power menu) — no system path support, must use skel
 mkdir -p /etc/skel/.config/nwg-bar
 cp /ctx/nwg-bar.json /etc/skel/.config/nwg-bar/bar.json
 
@@ -380,18 +384,18 @@ cp /ctx/nwg-bar.json /etc/skel/.config/nwg-bar/bar.json
 install -Dm755 /ctx/compositor-exit.sh /usr/bin/compositor-exit
 
 # XDG desktop portal (use GTK backend instead of GNOME)
-mkdir -p /etc/skel/.config/xdg-desktop-portal
-cp /ctx/portals.conf /etc/skel/.config/xdg-desktop-portal/portals.conf
+# System-wide via XDG_CONFIG_DIRS fallback
+mkdir -p /etc/xdg/xdg-desktop-portal
+cp /ctx/portals.conf /etc/xdg/xdg-desktop-portal/portals.conf
 
 ###############################################################################
 # Configure Niri
 ###############################################################################
 
+# Niri config: system-wide via /etc/niri/ fallback
+# Users can override by creating ~/.config/niri/config.kdl
 mkdir -p /etc/niri
 cp /ctx/niri-config.kdl /etc/niri/config.kdl
-
-mkdir -p /etc/skel/.config/niri
-cp /ctx/niri-config.kdl /etc/skel/.config/niri/config.kdl
 
 # Session wrapper (sets SSH_AUTH_SOCK before starting niri)
 install -Dm755 /ctx/niri-session.sh /usr/bin/niri-tilefin-session
@@ -404,10 +408,11 @@ rm -f /usr/share/wayland-sessions/niri.desktop
 # Configure GTK Theming
 ###############################################################################
 
-mkdir -p /etc/skel/.config/gtk-3.0
-mkdir -p /etc/skel/.config/gtk-4.0
+# GTK 3/4: system-wide defaults (users can override in ~/.config/gtk-*/settings.ini)
+mkdir -p /etc/gtk-3.0
+mkdir -p /etc/gtk-4.0
 
-cat > /etc/skel/.config/gtk-3.0/settings.ini <<EOF
+cat > /etc/gtk-3.0/settings.ini <<EOF
 [Settings]
 gtk-theme-name=adw-gtk3-dark
 gtk-icon-theme-name=Adwaita
@@ -416,7 +421,7 @@ gtk-font-name=Cantarell 11
 gtk-application-prefer-dark-theme=true
 EOF
 
-cat > /etc/skel/.config/gtk-4.0/settings.ini <<EOF
+cat > /etc/gtk-4.0/settings.ini <<EOF
 [Settings]
 gtk-theme-name=adw-gtk3-dark
 gtk-icon-theme-name=Adwaita
@@ -425,6 +430,7 @@ gtk-font-name=Cantarell 11
 gtk-application-prefer-dark-theme=true
 EOF
 
+# GTK 2: no system path, must use skel
 cat > /etc/skel/.gtkrc-2.0 <<EOF
 gtk-theme-name="adw-gtk3-dark"
 gtk-icon-theme-name="Adwaita"
