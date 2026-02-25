@@ -53,7 +53,6 @@ Environment includes:
 - **File Manager**: Thunar
 - **Display Management**: wdisplays
 - **Utilities**: wl-clipboard, cliphist, pamixer, brightnessctl
-- **IDE**: Google Antigravity
 
 ### Display Manager
 - Uses **greetd** with **tuigreet** instead of GDM
@@ -123,6 +122,36 @@ WireGuard tools are pre-installed. Configure VPN connections via NetworkManager:
 - Or install `nm-connection-editor` for GUI setup
 
 WireGuard status can be monitored via NetworkManager.
+
+### Userbox (CLI Tools)
+
+CLI tools (`gh`, `chezmoi`, `direnv`, `zoxide`, `starship`, `eza`,
+`bws`) live in a pre-built distrobox container, not in the system image.
+A default distrobox declaration ships via `/etc/skel/`, so every new
+user account has one ready.
+
+First boot:
+
+```bash
+ujust setup-userbox
+```
+
+This assembles the container and exports binaries to `~/.local/bin`.
+To use a different image:
+
+```bash
+ujust setup-userbox ghcr.io/youruser/yourbox:latest
+```
+
+After the userbox is running, bootstrap chezmoi for dotfiles and
+auto-assembly on future logins:
+
+```bash
+chezmoi init --apply <your-dotfiles-repo>
+```
+
+The chezmoi-managed systemd unit reassembles the userbox on each login.
+After `chezmoi apply`, the process is self-sustaining.
 
 ## Configuration
 

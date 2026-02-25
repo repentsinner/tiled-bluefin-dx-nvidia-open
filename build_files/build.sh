@@ -103,11 +103,6 @@ SYSTEM_UTILS=(
     greetd
     greetd-tuigreet
     nvidia-container-toolkit
-    chezmoi                   # Dotfiles manager
-    direnv                    # Per-directory environment variables
-    gh                        # GitHub CLI
-    zoxide                    # Smarter cd
-    starship                  # Modern shell prompt
 )
 
 SYSTEM_THEMING=(
@@ -118,14 +113,6 @@ FONTS=(
     fira-code-fonts
     fontawesome-fonts-all
     google-noto-emoji-fonts
-)
-
-#------------------------------------------------------------------------------
-# Additional Applications
-#------------------------------------------------------------------------------
-
-ADDITIONAL_APPS=(
-    antigravity
 )
 
 #------------------------------------------------------------------------------
@@ -153,11 +140,6 @@ COPR_REPOS=(
     solopasha/hyprland              # hyprlock, hypridle, swww, cliphist (used with Niri too)
     leloubil/wl-clip-persist
     pgaskin/looking-glass-client
-    atim/starship
-)
-
-RPM_REPOS=(
-    "antigravity-rpm::https://us-central1-yum.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-rpm"
 )
 
 FLATPAKS=(
@@ -207,20 +189,6 @@ for repo in "${COPR_REPOS[@]}"; do
     dnf5 -y copr enable "$repo" || echo "  Warning: Failed to enable $repo (may not support this Fedora version)"
 done
 
-echo "Adding RPM repositories..."
-for repo_entry in "${RPM_REPOS[@]}"; do
-    repo_name="${repo_entry%%::*}"
-    repo_url="${repo_entry##*::}"
-    echo "  Adding repo: $repo_name"
-    tee "/etc/yum.repos.d/${repo_name}.repo" << EOL
-[${repo_name}]
-name=${repo_name}
-baseurl=${repo_url}
-enabled=1
-gpgcheck=0
-EOL
-done
-
 ###############################################################################
 # Install Packages
 ###############################################################################
@@ -239,8 +207,6 @@ ALL_PACKAGES=(
     "${SYSTEM_UTILS[@]}"
     "${SYSTEM_THEMING[@]}"
     "${FONTS[@]}"
-    # Additional
-    "${ADDITIONAL_APPS[@]}"
     # Virtualization
     "${VIRTUALIZATION[@]}"
 )
@@ -255,11 +221,6 @@ dnf5 install -y --setopt=install_weak_deps=False "${ALL_PACKAGES[@]}"
 echo "Cleaning up repositories..."
 for repo in "${COPR_REPOS[@]}"; do
     dnf5 -y copr disable "$repo" || true
-done
-
-for repo_entry in "${RPM_REPOS[@]}"; do
-    repo_name="${repo_entry%%::*}"
-    rm -f "/etc/yum.repos.d/${repo_name}.repo"
 done
 
 ###############################################################################
@@ -292,20 +253,6 @@ echo "Installing niri-desaturate..."
 curl -Lo /tmp/niri-desaturate.rpm "https://github.com/repentsinner/niri-desaturate/releases/download/v25.11.0.1/niri-25.11.0.1-1.x86_64.rpm"
 dnf5 install -y --allowerasing /tmp/niri-desaturate.rpm
 rm -f /tmp/niri-desaturate.rpm
-
-# Bitwarden Secrets CLI
-echo "Installing Bitwarden Secrets CLI..."
-curl -Lo /tmp/bws.zip "https://github.com/bitwarden/sdk/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip"
-unzip /tmp/bws.zip -d /tmp
-install -Dm755 /tmp/bws /usr/bin/bws
-rm -rf /tmp/bws.zip /tmp/bws
-
-# eza (modern ls replacement - not in Fedora 42 repos)
-echo "Installing eza..."
-curl -Lo /tmp/eza.tar.gz "https://github.com/eza-community/eza/releases/download/v0.23.4/eza_x86_64-unknown-linux-gnu.tar.gz"
-tar -xzf /tmp/eza.tar.gz -C /tmp
-install -Dm755 /tmp/eza /usr/bin/eza
-rm -rf /tmp/eza.tar.gz /tmp/eza
 
 ###############################################################################
 # Configure Display Manager (greetd)
@@ -353,8 +300,12 @@ EOF
 # Configure CLI Tools
 ###############################################################################
 
-# Modern CLI aliases (eza, zoxide)
+# CLI aliases and shell hooks (tools resolved at runtime from $PATH)
 cp /ctx/cli-aliases.sh /etc/profile.d/cli-aliases.sh
+
+# Default userbox distrobox declaration (bootstrap for new accounts)
+mkdir -p /etc/skel/.config/distrobox
+cp /ctx/userbox.ini /etc/skel/.config/distrobox/userbox.ini
 
 ###############################################################################
 # Configure Wayland Components
