@@ -122,6 +122,7 @@ COPR_REPOS=(
 
 FLATPAKS=(
     com.bitwarden.desktop
+    org.mozilla.firefox
 )
 
 ###############################################################################

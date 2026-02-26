@@ -117,7 +117,7 @@ tmpfiles.d only sets ownership, doesn't create the directory).
 - **Polkit**: lxpolkit.
 - **Utilities**: rofimoji, network-manager-applet, wdisplays.
 - **Shell**: fish.
-- **Flatpaks**: Bitwarden (password manager).
+- **Flatpaks**: Bitwarden (password manager), Firefox (web browser).
 
 ### S7: Theming
 

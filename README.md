@@ -163,7 +163,7 @@ On an immutable system, software belongs in the right layer:
 | Method | For | Example |
 |--------|-----|---------|
 | **System image** | Session infrastructure, system services | Niri, greetd, libvirt |
-| **Flatpak** | Sandboxed GUI apps | `flatpak install --user flathub org.mozilla.firefox` |
+| **Flatpak** | Sandboxed GUI apps | `flatpak install --user flathub org.gnome.Evince` |
 | **Distrobox** | CLI tools, dev toolchains, language runtimes | Userbox (see below), or `distrobox create --image fedora:latest` |
 | **Native installer** | Vendor-provided self-updating CLIs | `claude install` to `~/.local/bin` |
 
