@@ -3,14 +3,14 @@
 set -ouex pipefail
 
 ###############################################################################
-# Tilefin-DX Build Script
+# Tilefin Build Script
 # Niri compositor on Universal Blue base-nvidia
 ###############################################################################
 
 # Customize OS name for GRUB boot menu
-sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin-DX Nvidia Open"/' /usr/lib/os-release
+sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin Nvidia Open"/' /usr/lib/os-release
 if [ -f /etc/os-release ] && [ ! -L /etc/os-release ]; then
-    sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin-DX Nvidia Open"/' /etc/os-release
+    sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin Nvidia Open"/' /etc/os-release
 fi
 
 ###############################################################################

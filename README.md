@@ -1,4 +1,4 @@
-# Tilefin-DX
+# Tilefin
 
 A custom [bootc](https://github.com/bootc-dev/bootc) image built on [Universal Blue](https://github.com/ublue-os)'s [base-nvidia](https://github.com/ublue-os/main), providing the [Niri](https://github.com/niri-wm/niri) tiling compositor for a keyboard-driven [Wayland](https://wayland.freedesktop.org/) desktop with Nvidia GPU support.
 
@@ -103,7 +103,7 @@ Based on the current setup, any replacement compositor must support:
 From any bootc-based system:
 
 ```bash
-sudo bootc switch ghcr.io/repentsinner/tiled-bluefin-dx-nvidia-open
+sudo bootc switch ghcr.io/repentsinner/tilefin-nvidia-open
 sudo reboot
 ```
 

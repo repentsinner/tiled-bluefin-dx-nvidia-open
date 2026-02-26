@@ -1,8 +1,8 @@
-# SPEC: Tilefin-DX System Image
+# SPEC: Tilefin System Image
 
 ## Purpose
 
-Tilefin-DX is an immutable bootc/OSTree system image that provides a
+Tilefin is an immutable bootc/OSTree system image that provides a
 keyboard-driven Wayland desktop on Nvidia hardware. It layers the Niri
 tiling compositor, a Wayland session stack, and desktop applications on
 top of Universal Blue's base-nvidia image.
@@ -193,7 +193,7 @@ Three repos, three concerns:
 
 | Repo | Contains | Lifecycle |
 |---|---|---|
-| **tiled-bluefin-dx-nvidia-open** | OS image, ujust recipes, shell aliases, skel default | Rare |
+| **tilefin-nvidia-open** | OS image, ujust recipes, shell aliases, skel default | Rare |
 | **repentsinner/userbox** | Containerfile for user tools image | Frequent |
 | **chezmoi dotfiles** | `.ini`, systemd unit, shell config | Personal |
 
