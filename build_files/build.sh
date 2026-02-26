@@ -3,14 +3,14 @@
 set -ouex pipefail
 
 ###############################################################################
-# Tilefin-DX Build Script
+# Tilefin Build Script
 # Niri compositor on Universal Blue base-nvidia
 ###############################################################################
 
 # Customize OS name for GRUB boot menu
-sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin-DX Nvidia Open"/' /usr/lib/os-release
+sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin Nvidia Open"/' /usr/lib/os-release
 if [ -f /etc/os-release ] && [ ! -L /etc/os-release ]; then
-    sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin-DX Nvidia Open"/' /etc/os-release
+    sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="Tilefin Nvidia Open"/' /etc/os-release
 fi
 
 ###############################################################################
@@ -122,14 +122,14 @@ COPR_REPOS=(
 
 FLATPAKS=(
     com.bitwarden.desktop
+    org.mozilla.firefox
 )
 
 ###############################################################################
-# Enable System Services
+# Enable System Services (base image)
 ###############################################################################
 
 systemctl enable podman.socket
-systemctl enable libvirtd.socket          # VM management (socket-activated)
 systemctl enable rpm-ostreed-automatic.timer  # Auto-stage image upgrades
 
 ###############################################################################
@@ -168,6 +168,12 @@ echo "Installing ${#ALL_PACKAGES[@]} packages..."
 dnf5 install -y --setopt=install_weak_deps=False "${ALL_PACKAGES[@]}"
 
 ###############################################################################
+# Enable System Services (installed packages)
+###############################################################################
+
+systemctl enable libvirtd.socket          # VM management (socket-activated)
+
+###############################################################################
 # Cleanup Repositories
 ###############################################################################
 
@@ -200,7 +206,6 @@ echo "Installing VS Code..."
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 dnf5 config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/vscode/config.repo
 dnf5 install -y code
-dnf5 config-manager setopt code.enabled=0
 
 # niri-desaturate (fork with desaturate window rule support)
 # Replaces the COPR niri package until upstream merges the PR
@@ -251,8 +256,10 @@ EOF
 # Configure CLI Tools
 ###############################################################################
 
-# CLI aliases and shell hooks (tools resolved at runtime from $PATH)
-cp /ctx/cli-aliases.sh /etc/profile.d/cli-aliases.sh
+# Tool aliases and shell hooks (resolved at runtime from $PATH)
+cp /ctx/tool-aliases.sh /etc/profile.d/tool-aliases.sh
+mkdir -p /etc/fish/conf.d
+cp /ctx/tool-aliases.fish /etc/fish/conf.d/tool-aliases.fish
 
 # Default userbox distrobox declaration (bootstrap for new accounts)
 mkdir -p /etc/skel/.config/distrobox

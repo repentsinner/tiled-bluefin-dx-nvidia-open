@@ -1,8 +1,8 @@
-# SPEC: Tilefin-DX System Image
+# SPEC: Tilefin System Image
 
 ## Purpose
 
-Tilefin-DX is an immutable bootc/OSTree system image that provides a
+Tilefin is an immutable bootc/OSTree system image that provides a
 keyboard-driven Wayland desktop on Nvidia hardware. It layers the Niri
 tiling compositor, a Wayland session stack, and desktop applications on
 top of Universal Blue's base-nvidia image.
@@ -117,7 +117,7 @@ tmpfiles.d only sets ownership, doesn't create the directory).
 - **Polkit**: lxpolkit.
 - **Utilities**: rofimoji, network-manager-applet, wdisplays.
 - **Shell**: fish.
-- **Flatpaks**: Bitwarden (password manager).
+- **Flatpaks**: Bitwarden (password manager), Firefox (web browser).
 
 ### S7: Theming
 
@@ -164,10 +164,12 @@ GPU passthrough support:
 
 *Status: complete — PR #1, 2024-10-15*
 
-`/etc/profile.d/cli-aliases.sh` provides bash aliases for eza, zoxide
-init, and starship init. These resolve at runtime against whatever is on
-`$PATH` — they work whether the binary comes from the image or a
-distrobox export.
+`/etc/profile.d/tool-aliases.sh` (bash) and
+`/etc/fish/conf.d/tool-aliases.fish` (fish) provide aliases and shell
+hooks for CLI tools regardless of origin (userbox exports or native
+installers): bat, eza, zoxide, starship, direnv, and mise. All entries
+are guarded (`command -v` in bash, `command -sq` in fish) and silently
+skipped when the tool is absent.
 
 ### S12: Userbox — move user tools to distrobox
 
@@ -193,7 +195,7 @@ Three repos, three concerns:
 
 | Repo | Contains | Lifecycle |
 |---|---|---|
-| **tiled-bluefin-dx-nvidia-open** | OS image, ujust recipes, shell aliases, skel default | Rare |
+| **tilefin-nvidia-open** | OS image, ujust recipes, shell aliases, skel default | Rare |
 | **repentsinner/userbox** | Containerfile for user tools image | Frequent |
 | **chezmoi dotfiles** | `.ini`, systemd unit, shell config | Personal |
 
@@ -206,9 +208,10 @@ layers of the same file, each more specific than the last:
 1. **Skel default** — the image ships
    `/etc/skel/.config/distrobox/userbox.ini` with a default image path.
    Every new user account gets a working `.ini` at account creation.
-2. **ujust override** — `ujust setup-userbox [image]` accepts an
-   optional image argument, rewrites the `.ini`, and runs assembly.
-   Useful for first boot or switching images.
+2. **ujust override** — `ujust setup-user [image]` accepts an optional
+   image argument, rewrites the `.ini`, and runs assembly. Also installs
+   native CLI tools (Claude Code, uv). Useful for first boot or
+   switching images.
 3. **Chezmoi steady-state** — once the userbox is running, chezmoi owns
    the `.ini` going forward. Changes flow from dotfiles.
 
@@ -218,28 +221,24 @@ with no userbox functions normally — it just lacks CLI tools.
 #### R12.1: Image does not contain user tools
 
 The image does not install `gh`, `chezmoi`, `direnv`, `zoxide`,
-`starship`, `eza`, `bws`, or `antigravity`. No COPR repos, curl
+`starship`, `eza`, `bat`, `bws`, or `antigravity`. No COPR repos, curl
 blocks, or package arrays exist for these tools in the build script.
+Native installer tools (Claude Code, uv) are also not in the image —
+they are installed per-user by `ujust setup-user`.
 
 #### R12.2: Shell aliases degrade gracefully
 
-Every alias and shell hook in `cli-aliases.sh` is guarded with
+Every alias and shell hook in `tool-aliases.sh` is guarded with
 `command -v`. When a tool is absent (no userbox, or userbox not yet
 assembled), the alias is silently skipped. No `command not found`
 errors on a fresh system.
 
-#### R12.3: direnv shell hook
+#### R12.3: Shell hooks for both bash and fish
 
-`cli-aliases.sh` includes a guarded direnv hook for bash:
-
-```bash
-if [[ $- == *i* ]] && command -v direnv &>/dev/null; then
-    eval "$(direnv hook bash)"
-fi
-```
-
-Fish hook belongs in chezmoi-managed `~/.config/fish/config.fish`, not
-in this image.
+`tool-aliases.sh` and `tool-aliases.fish` include guarded hooks
+for direnv, zoxide, and starship in both shells. Both files are
+system-wide (`/etc/profile.d/` and `/etc/fish/conf.d/`), so no
+chezmoi-managed fish config is required for these tools.
 
 #### R12.4: Skel default userbox.ini
 
@@ -266,16 +265,24 @@ Rationale: breaks the chezmoi↔userbox bootstrap cycle. Chezmoi lives
 inside the userbox, so it cannot seed its own `.ini`. The skel file
 provides a working default; chezmoi overwrites it once available.
 
-#### R12.5: ujust setup-userbox recipe
+#### R12.5: ujust setup-user recipe
 
-`tilefin.just` provides a `setup-userbox` recipe that assembles the
-userbox container from `~/.config/distrobox/userbox.ini`.
+`tilefin.just` provides a `setup-user` recipe that provisions a new
+user's development environment in one step:
+
+1. Installs native CLI tools to `~/.local/bin`: Claude Code (via
+   `claude.ai/install.sh`), uv (via `astral.sh`), and mise (via
+   `mise.run`). All installers are idempotent — re-running updates
+   existing installs.
+2. Assembles the userbox container from
+   `~/.config/distrobox/userbox.ini`.
 
 When an optional image argument is provided, the recipe rewrites the
 `image=` line in the `.ini` before assembly. This supports switching
 images or overriding the skel default without chezmoi.
 
-The recipe has no knowledge of which tools the container provides.
+The recipe is idempotent. Running it again updates native tools and
+reassembles the userbox with `--replace`.
 
 #### R12.6: Systemd user unit for auto-assembly (chezmoi)
 
@@ -322,6 +329,55 @@ Rationale: the previous base (Bluefin-DX) provided VS Code; base-nvidia
 does not. VS Code is a host application that attaches to containers — it
 does not belong in the userbox.
 
+### S16: Dynamic GPU detection for hybrid Intel+Nvidia systems
+
+*Status: in progress*
+
+#### Problem
+
+The niri config hardcodes Nvidia-specific environment variables
+(`GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`, `LIBVA_DRIVER_NAME`).
+These force the compositor to render through Nvidia. On systems where
+an Intel iGPU drives the display and the Nvidia GPU is reserved for
+CUDA or PCI passthrough, these variables prevent niri from starting or
+cause broken rendering.
+
+Additionally, `WLR_NO_HARDWARE_CURSORS` is a wlroots variable. Niri
+uses Smithay and ignores it. The equivalent niri setting is
+`debug { disable-cursor-plane }`.
+
+#### Design
+
+Nvidia environment variables move from the static niri config
+(`config.kdl`) to the session wrapper (`niri-session.sh`). The wrapper
+detects whether an Nvidia GPU drives a display output and sets the
+variables conditionally.
+
+Detection: if any DRM connector under an Nvidia-driven card reports a
+connected display, the system is Nvidia-as-display. Otherwise (Intel
+iGPU drives display, Nvidia has no outputs or is unbound), the
+variables stay unset and mesa auto-detects Intel.
+
+The niri config retains only hardware-independent environment variables
+(`XDG_SESSION_TYPE`, `XCURSOR_SIZE`, `ELECTRON_OZONE_PLATFORM_HINT`).
+
+#### R16.1: No Nvidia environment variables in niri config
+
+`config.kdl` shall not set `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`,
+`LIBVA_DRIVER_NAME`, or `WLR_NO_HARDWARE_CURSORS`.
+
+#### R16.2: Session wrapper sets Nvidia variables conditionally
+
+`niri-session.sh` shall detect whether Nvidia drives a display output.
+When true, it exports `GBM_BACKEND=nvidia-drm`,
+`__GLX_VENDOR_LIBRARY_NAME=nvidia`, and `LIBVA_DRIVER_NAME=nvidia`.
+When false, it leaves them unset.
+
+#### R16.3: WLR_NO_HARDWARE_CURSORS removed
+
+The wlroots variable `WLR_NO_HARDWARE_CURSORS` is removed entirely. It
+has no effect on niri (Smithay-based).
+
 ### S15: Rebase from Bluefin-DX to base-nvidia
 
 *Status: in progress*
@@ -354,6 +410,30 @@ Changes from the previous base:
   `/run/tailscale` override are removed.
 - `fish` is added to the package install (previously inherited from
   Bluefin base).
+
+### S17: Automated releases
+
+*Status: in progress*
+
+release-please generates semver tags and a CHANGELOG from conventional
+commits. Configuration uses the `simple` release type (`version.txt` +
+`CHANGELOG.md`).
+
+Three workflows support the release lifecycle:
+
+- **release-please.yml** — runs on push to main. Opens or updates a
+  release PR. When the PR merges, creates a GitHub Release with a
+  semver tag.
+- **auto-merge-release.yml** — auto-merges release PRs opened by
+  release-please after CI passes.
+- **build.yml** — adds semver tags to the container image when a git
+  tag exists on the commit (e.g., `ghcr.io/.../tilefin-nvidia-open:0.4.0`).
+
+Daily and push builds continue producing `latest` and date-stamped
+tags. Semver tags are additive — they appear only when a release is cut.
+
+Version history: 0.1.0 (Sway on Bluefin-DX), 0.2.0 (Hyprland on Bluefin-DX), 0.3.0 (Niri on
+Bluefin-DX), 0.4.0 (Niri on base-nvidia).
 
 ## Out of scope
 

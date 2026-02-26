@@ -1,4 +1,4 @@
-# Tilefin-DX
+# Tilefin
 
 A custom [bootc](https://github.com/bootc-dev/bootc) image built on [Universal Blue](https://github.com/ublue-os)'s [base-nvidia](https://github.com/ublue-os/main), providing the [Niri](https://github.com/niri-wm/niri) tiling compositor for a keyboard-driven [Wayland](https://wayland.freedesktop.org/) desktop with Nvidia GPU support.
 
@@ -103,7 +103,7 @@ Based on the current setup, any replacement compositor must support:
 From any bootc-based system:
 
 ```bash
-sudo bootc switch ghcr.io/repentsinner/tiled-bluefin-dx-nvidia-open
+sudo bootc switch ghcr.io/repentsinner/tilefin-nvidia-open
 sudo reboot
 ```
 
@@ -117,24 +117,23 @@ WireGuard tools are pre-installed. Configure VPN connections via NetworkManager:
 
 WireGuard status can be monitored via NetworkManager.
 
-### Userbox (CLI Tools)
+### Post-Install Setup
 
-CLI tools (`gh`, `chezmoi`, `direnv`, `zoxide`, `starship`, `eza`,
-`bws`) live in a pre-built distrobox container, not in the system image.
-A default distrobox declaration ships via `/etc/skel/`, so every new
-user account has one ready.
-
-First boot:
+First boot provisions your user environment in one step:
 
 ```bash
-ujust setup-userbox
+ujust setup-user
 ```
 
-This assembles the container and exports binaries to `~/.local/bin`.
-To use a different image:
+This installs native CLI tools (Claude Code, uv, mise) to `~/.local/bin`
+and assembles the userbox distrobox container, which exports CLI tools
+(`gh`, `chezmoi`, `direnv`, `zoxide`, `starship`, `eza`, `bat`, `bws`)
+to `~/.local/bin`.
+
+To use a different userbox image:
 
 ```bash
-ujust setup-userbox ghcr.io/youruser/yourbox:latest
+ujust setup-user ghcr.io/youruser/yourbox:latest
 ```
 
 After the userbox is running, bootstrap chezmoi for dotfiles and
@@ -163,7 +162,7 @@ On an immutable system, software belongs in the right layer:
 | Method | For | Example |
 |--------|-----|---------|
 | **System image** | Session infrastructure, system services | Niri, greetd, libvirt |
-| **Flatpak** | Sandboxed GUI apps | `flatpak install --user flathub org.mozilla.firefox` |
+| **Flatpak** | Sandboxed GUI apps | `flatpak install --user flathub org.gnome.Evince` |
 | **Distrobox** | CLI tools, dev toolchains, language runtimes | Userbox (see below), or `distrobox create --image fedora:latest` |
 | **Native installer** | Vendor-provided self-updating CLIs | `claude install` to `~/.local/bin` |
 
