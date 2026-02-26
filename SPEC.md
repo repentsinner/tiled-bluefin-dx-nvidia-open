@@ -117,7 +117,8 @@ tmpfiles.d only sets ownership, doesn't create the directory).
 - **Polkit**: lxpolkit.
 - **Utilities**: rofimoji, network-manager-applet, wdisplays.
 - **Shell**: fish.
-- **Flatpaks**: Bitwarden (password manager), Firefox (web browser).
+- **Flatpaks** (installed by `ujust setup-user`, not baked into image):
+  Bitwarden, Firefox, Slack.
 
 ### S7: Theming
 
@@ -270,19 +271,25 @@ provides a working default; chezmoi overwrites it once available.
 `tilefin.just` provides a `setup-user` recipe that provisions a new
 user's development environment in one step:
 
-1. Installs native CLI tools to `~/.local/bin`: Claude Code (via
-   `claude.ai/install.sh`), uv (via `astral.sh`), and mise (via
-   `mise.run`). All installers are idempotent — re-running updates
-   existing installs.
-2. Assembles the userbox container from
+The recipe presents three interactive gum menus (all items selected by
+default, user deselects with space):
+
+1. **Native CLI tools** — Claude Code, uv, mise. Installed to
+   `~/.local/bin` via vendor curl installers. All idempotent.
+2. **Flatpak apps** — Firefox, Bitwarden (selected by default); Slack,
+   Discord, Signal, Proton VPN (available, unselected). Installed as
+   user Flatpaks (`--user`), which persist in `~/.local/share/flatpak`
+   and self-update independently of the image.
+3. **Userbox container** — yes/no. Assembles from
    `~/.config/distrobox/userbox.ini`.
 
 When an optional image argument is provided, the recipe rewrites the
 `image=` line in the `.ini` before assembly. This supports switching
 images or overriding the skel default without chezmoi.
 
-The recipe is idempotent. Running it again updates native tools and
-reassembles the userbox with `--replace`.
+The recipe is idempotent. Running it again updates native tools,
+skips already-installed Flatpaks, and reassembles the userbox with
+`--replace`.
 
 #### R12.6: Systemd user unit for auto-assembly (chezmoi)
 
