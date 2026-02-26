@@ -125,10 +125,11 @@ First boot provisions your user environment in one step:
 ujust setup-user
 ```
 
-This installs native CLI tools (Claude Code, uv, mise) to `~/.local/bin`
-and assembles the userbox distrobox container, which exports CLI tools
-(`gh`, `chezmoi`, `direnv`, `zoxide`, `starship`, `eza`, `bat`, `bws`)
-to `~/.local/bin`.
+An interactive menu lets you select from:
+- **Native CLI tools**: Claude Code, uv, mise (all selected by default)
+- **Flatpak apps**: Firefox, Bitwarden, Slack, Discord, Signal, Proton VPN
+- **Userbox container**: exports CLI tools (`gh`, `chezmoi`, `direnv`,
+  `zoxide`, `starship`, `eza`, `bat`, `bws`) to `~/.local/bin`
 
 To use a different userbox image:
 

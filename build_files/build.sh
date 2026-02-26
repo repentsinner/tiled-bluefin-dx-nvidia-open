@@ -120,11 +120,6 @@ COPR_REPOS=(
     pgaskin/looking-glass-client
 )
 
-FLATPAKS=(
-    com.bitwarden.desktop
-    org.mozilla.firefox
-)
-
 ###############################################################################
 # Enable System Services (base image)
 ###############################################################################
@@ -181,21 +176,6 @@ echo "Cleaning up repositories..."
 for repo in "${COPR_REPOS[@]}"; do
     dnf5 -y copr disable "$repo" || true
 done
-
-###############################################################################
-# Install Flatpaks
-###############################################################################
-
-echo "Installing Flatpaks..."
-flatpak remote-add --if-not-exists --system flathub https://flathub.org/repo/flathub.flatpakrepo
-
-if [ ${#FLATPAKS[@]} -gt 0 ]; then
-    flatpak install --system --noninteractive flathub "${FLATPAKS[@]}"
-fi
-
-# Note: Flatpaks with "extra-data" (like Slack) can't be installed during container builds
-# due to sandbox/namespace restrictions. Install those manually after boot:
-#   flatpak install flathub com.slack.Slack
 
 ###############################################################################
 # Install Additional Tools
