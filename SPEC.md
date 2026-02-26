@@ -322,6 +322,55 @@ Rationale: the previous base (Bluefin-DX) provided VS Code; base-nvidia
 does not. VS Code is a host application that attaches to containers — it
 does not belong in the userbox.
 
+### S16: Dynamic GPU detection for hybrid Intel+Nvidia systems
+
+*Status: in progress*
+
+#### Problem
+
+The niri config hardcodes Nvidia-specific environment variables
+(`GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`, `LIBVA_DRIVER_NAME`).
+These force the compositor to render through Nvidia. On systems where
+an Intel iGPU drives the display and the Nvidia GPU is reserved for
+CUDA or PCI passthrough, these variables prevent niri from starting or
+cause broken rendering.
+
+Additionally, `WLR_NO_HARDWARE_CURSORS` is a wlroots variable. Niri
+uses Smithay and ignores it. The equivalent niri setting is
+`debug { disable-cursor-plane }`.
+
+#### Design
+
+Nvidia environment variables move from the static niri config
+(`config.kdl`) to the session wrapper (`niri-session.sh`). The wrapper
+detects whether an Nvidia GPU drives a display output and sets the
+variables conditionally.
+
+Detection: if any DRM connector under an Nvidia-driven card reports a
+connected display, the system is Nvidia-as-display. Otherwise (Intel
+iGPU drives display, Nvidia has no outputs or is unbound), the
+variables stay unset and mesa auto-detects Intel.
+
+The niri config retains only hardware-independent environment variables
+(`XDG_SESSION_TYPE`, `XCURSOR_SIZE`, `ELECTRON_OZONE_PLATFORM_HINT`).
+
+#### R16.1: No Nvidia environment variables in niri config
+
+`config.kdl` shall not set `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`,
+`LIBVA_DRIVER_NAME`, or `WLR_NO_HARDWARE_CURSORS`.
+
+#### R16.2: Session wrapper sets Nvidia variables conditionally
+
+`niri-session.sh` shall detect whether Nvidia drives a display output.
+When true, it exports `GBM_BACKEND=nvidia-drm`,
+`__GLX_VENDOR_LIBRARY_NAME=nvidia`, and `LIBVA_DRIVER_NAME=nvidia`.
+When false, it leaves them unset.
+
+#### R16.3: WLR_NO_HARDWARE_CURSORS removed
+
+The wlroots variable `WLR_NO_HARDWARE_CURSORS` is removed entirely. It
+has no effect on niri (Smithay-based).
+
 ### S15: Rebase from Bluefin-DX to base-nvidia
 
 *Status: in progress*

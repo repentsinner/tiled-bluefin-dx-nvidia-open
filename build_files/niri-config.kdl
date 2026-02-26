@@ -75,13 +75,11 @@ prefer-no-csd
 // Screenshot path
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
-// Environment variables for Nvidia
+// Environment variables
+// Nvidia-specific vars (GBM_BACKEND, __GLX_VENDOR_LIBRARY_NAME, LIBVA_DRIVER_NAME)
+// are set conditionally by niri-session.sh based on GPU detection
 environment {
-    LIBVA_DRIVER_NAME "nvidia"
     XDG_SESSION_TYPE "wayland"
-    GBM_BACKEND "nvidia-drm"
-    __GLX_VENDOR_LIBRARY_NAME "nvidia"
-    WLR_NO_HARDWARE_CURSORS "1"
     XCURSOR_SIZE "24"
     ELECTRON_OZONE_PLATFORM_HINT "wayland"
 }
