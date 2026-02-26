@@ -411,6 +411,30 @@ Changes from the previous base:
 - `fish` is added to the package install (previously inherited from
   Bluefin base).
 
+### S17: Automated releases
+
+*Status: in progress*
+
+release-please generates semver tags and a CHANGELOG from conventional
+commits. Configuration uses the `simple` release type (`version.txt` +
+`CHANGELOG.md`).
+
+Three workflows support the release lifecycle:
+
+- **release-please.yml** — runs on push to main. Opens or updates a
+  release PR. When the PR merges, creates a GitHub Release with a
+  semver tag.
+- **auto-merge-release.yml** — auto-merges release PRs opened by
+  release-please after CI passes.
+- **build.yml** — adds semver tags to the container image when a git
+  tag exists on the commit (e.g., `ghcr.io/.../tilefin-nvidia-open:0.4.0`).
+
+Daily and push builds continue producing `latest` and date-stamped
+tags. Semver tags are additive — they appear only when a release is cut.
+
+Version history: 0.1.0 (Sway on Bluefin-DX), 0.2.0 (Hyprland on Bluefin-DX), 0.3.0 (Niri on
+Bluefin-DX), 0.4.0 (Niri on base-nvidia).
+
 ## Out of scope
 
 - **User dotfiles**: Managed by chezmoi in a separate repo. This image
