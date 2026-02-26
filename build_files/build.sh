@@ -125,11 +125,10 @@ FLATPAKS=(
 )
 
 ###############################################################################
-# Enable System Services
+# Enable System Services (base image)
 ###############################################################################
 
 systemctl enable podman.socket
-systemctl enable libvirtd.socket          # VM management (socket-activated)
 systemctl enable rpm-ostreed-automatic.timer  # Auto-stage image upgrades
 
 ###############################################################################
@@ -166,6 +165,12 @@ ALL_PACKAGES=(
 
 echo "Installing ${#ALL_PACKAGES[@]} packages..."
 dnf5 install -y --setopt=install_weak_deps=False "${ALL_PACKAGES[@]}"
+
+###############################################################################
+# Enable System Services (installed packages)
+###############################################################################
+
+systemctl enable libvirtd.socket          # VM management (socket-activated)
 
 ###############################################################################
 # Cleanup Repositories
