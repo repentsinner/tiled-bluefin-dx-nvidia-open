@@ -164,10 +164,11 @@ GPU passthrough support:
 
 *Status: complete — PR #1, 2024-10-15*
 
-`/etc/profile.d/cli-aliases.sh` provides bash aliases for eza, zoxide
-init, and starship init. These resolve at runtime against whatever is on
-`$PATH` — they work whether the binary comes from the image or a
-distrobox export.
+`/etc/profile.d/userbox-aliases.sh` (bash) and
+`/etc/fish/conf.d/userbox-aliases.fish` (fish) provide aliases and shell
+hooks for tools exported from the userbox: bat, eza, zoxide, starship,
+and direnv. All entries are guarded (`command -v` in bash, `command -sq`
+in fish) and silently skipped when the userbox is absent.
 
 ### S12: Userbox — move user tools to distrobox
 
@@ -223,23 +224,17 @@ blocks, or package arrays exist for these tools in the build script.
 
 #### R12.2: Shell aliases degrade gracefully
 
-Every alias and shell hook in `cli-aliases.sh` is guarded with
+Every alias and shell hook in `userbox-aliases.sh` is guarded with
 `command -v`. When a tool is absent (no userbox, or userbox not yet
 assembled), the alias is silently skipped. No `command not found`
 errors on a fresh system.
 
-#### R12.3: direnv shell hook
+#### R12.3: Shell hooks for both bash and fish
 
-`cli-aliases.sh` includes a guarded direnv hook for bash:
-
-```bash
-if [[ $- == *i* ]] && command -v direnv &>/dev/null; then
-    eval "$(direnv hook bash)"
-fi
-```
-
-Fish hook belongs in chezmoi-managed `~/.config/fish/config.fish`, not
-in this image.
+`userbox-aliases.sh` and `userbox-aliases.fish` include guarded hooks
+for direnv, zoxide, and starship in both shells. Both files are
+system-wide (`/etc/profile.d/` and `/etc/fish/conf.d/`), so no
+chezmoi-managed fish config is required for these tools.
 
 #### R12.4: Skel default userbox.ini
 

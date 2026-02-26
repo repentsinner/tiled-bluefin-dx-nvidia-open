@@ -1,5 +1,11 @@
 #!/bin/bash
-# Modern CLI tool aliases and initialization
+# Aliases and shell hooks for userbox tools (distrobox-exported to ~/.local/bin)
+# All entries guarded with command -v — silently skipped when userbox is absent
+
+# bat: syntax-highlighting pager (replaces cat for interactive use)
+if command -v bat &>/dev/null; then
+    alias cat='bat --style=plain --pager=never'
+fi
 
 # eza: modern ls replacement
 if command -v eza &>/dev/null; then

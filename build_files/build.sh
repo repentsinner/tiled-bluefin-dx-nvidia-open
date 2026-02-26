@@ -256,8 +256,10 @@ EOF
 # Configure CLI Tools
 ###############################################################################
 
-# CLI aliases and shell hooks (tools resolved at runtime from $PATH)
-cp /ctx/cli-aliases.sh /etc/profile.d/cli-aliases.sh
+# Userbox aliases and shell hooks (tools resolved at runtime from $PATH)
+cp /ctx/userbox-aliases.sh /etc/profile.d/userbox-aliases.sh
+mkdir -p /etc/fish/conf.d
+cp /ctx/userbox-aliases.fish /etc/fish/conf.d/userbox-aliases.fish
 
 # Default userbox distrobox declaration (bootstrap for new accounts)
 mkdir -p /etc/skel/.config/distrobox
