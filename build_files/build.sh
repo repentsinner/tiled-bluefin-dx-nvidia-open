@@ -81,6 +81,7 @@ SYSTEM_UTILS=(
     brightnessctl
     greetd
     greetd-tuigreet
+    gum                       # TUI menus for ujust recipes
 )
 
 SYSTEM_THEMING=(
